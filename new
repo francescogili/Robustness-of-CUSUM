@@ -1,0 +1,161 @@
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+import pandas as pd
+from random import *
+import mpmath as mpmath
+import math
+import pylab
+from scipy.stats import logistic
+import statsmodels.stats.api as sms
+
+def find_min_array(index, array):
+    i=0
+    minimum = array[0]
+    while i <= index:
+        if minimum <= array[i]:
+            i += 1
+        else:
+            minimum = array[i]
+            i += 1
+    return minimum
+
+
+"""
+
+input_alpha = input("Enter alpha, the error of first type: ")
+alpha = float(input_alpha)
+
+h = np.log(1/alpha)
+"""
+h = 3
+"""
+print("The value of the threshold h is: ")
+print(h)
+"""
+results = np.zeros(10000)
+
+failures = 0
+u = 0
+while u < 10000: 
+    
+    
+    
+    s = np.random.normal(0, 1, 120)
+    """
+    s= np.random.logistic(0, 1, 120)
+    """
+    change_point = 5
+    """randint(1,100)"""
+
+    sigma = 1
+    x = np.zeros(101)
+    #print(x)
+    sum_up = np.zeros(101)
+    """
+    theta_z = input("Enter the mean before the changepoint: ") 
+    theta_o = input("Enter the mean after the changepoint: ") 
+    """
+    theta_z = 0
+    theta_o = 2
+    theta_1 = float(theta_o)
+    theta_0 = float(theta_z)
+
+    p_0 = 1
+    p_1 = 1
+
+
+    j=change_point
+    i=1
+
+    while i<change_point:
+        x[i] = s[i]
+        #print(x[i])
+        
+        p_0 = np.exp((-1/(2*((sigma)**2)))*((x[i] - theta_0)**2))
+        p_1 = np.exp((-1/(2*((sigma)**2)))*((x[i] - theta_1)**2))
+        """
+        p_0 = 1/(2*sigma)*(np.exp(- ((abs(x[i] - theta_0))/(sigma))))
+        p_1 = 1/(2*sigma)*(np.exp(- ((abs(x[i] - theta_1))/(sigma))))
+       
+        
+        p_0 = np.exp((theta_0 - x[i])/(sigma))/(sigma*(1+np.exp((theta_0 - x[i])/(sigma)))**2)
+        p_1 = np.exp((theta_1 - x[i])/(sigma))/(sigma*(1+np.exp((theta_1 - x[i])/(sigma)))**2)
+        """
+        sum_up[i] = sum_up[i-1] + np.log(p_1 / p_0)
+
+        i += 1
+    
+    s1 = np.random.normal(2, 1, 120)
+    """
+   
+        
+    s1 = np.random.logistic(2, 1, 120)
+    """
+    while j<101:
+        x[j] = s1[j]
+        
+        p_0 = np.exp((-1/(2*((sigma)**2)))*((x[j] - theta_0)**2))
+        p_1 = np.exp((-1/(2*((sigma)**2)))*((x[j] - theta_1)**2))
+        """
+        p_0 = 1/(2*sigma)*(np.exp(- ((abs(x[i] - theta_0))/(sigma))))
+        p_1 = 1/(2*sigma)*(np.exp(- ((abs(x[i] - theta_1))/(sigma))))
+        
+        p_0 = np.exp((theta_0 - x[i])/(sigma))/(sigma*(1+np.exp((theta_0 - x[i])/(sigma)))**2)
+        p_1 = np.exp((theta_1 - x[i])/(sigma))/(sigma*(1+np.exp((theta_1 - x[i])/(sigma)))**2)
+        """
+        sum_up[j] = sum_up[j-1] + np.log(p_1 / p_0)
+
+        j += 1 
+    
+    k=1
+    change_point_detected = 0
+
+    while k < 101:
+        g_n = sum_up[k] - find_min_array(k,sum_up)
+        if g_n < h:
+            k += 1
+        else:
+            change_point_detected = k
+            k = 101
+            
+    results[u] = change_point_detected
+    
+    if change_point_detected == 0:
+        failures += 1
+        
+    u += 1
+    
+reliable_results = results[results != 0]
+
+
+q =0    
+somma = 0
+while q < (10000 - failures):
+    somma = somma + reliable_results[q]
+    q += 1
+    
+media = somma / (10000 - failures)
+
+print("The mean changepoint is: " + str(media))
+
+
+print("The confidence interval ")
+    
+y = sms.DescrStatsW(reliable_results).tconfint_mean()
+print(sms.DescrStatsW(reliable_results).tconfint_mean())
+
+ic = y[1]-y[0]
+
+print(ic)
+
+print("The number of failures is: " + str(failures))
+
+l=0
+result_plot = np.zeros(500)
+while l<500:
+    result_plot[l] = reliable_results[l]
+    l += 1
+
+sns.distplot(result_plot, kde = False).set_title("Normal - Normal")
+plt.show()
